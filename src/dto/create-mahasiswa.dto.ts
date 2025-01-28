@@ -1,8 +1,15 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Jenis_Kelamin } from "@prisma/client";
-import { IsString, IsNotEmpty, Length, IsEnum } from "class-validator";
+import { IsString, IsNotEmpty, Length, IsEnum, IsOptional } from "class-validator";
 
 export class creatMahasiswaDTO {
+
+    @ApiProperty({description : "Foto Profile",
+        type : String,
+        example : "http://localhost:3000/uploads/105841105422.jpg"})
+    @IsString() 
+    @IsOptional()
+    foto_profile? : string;
 
     @ApiProperty({description : "Nim", 
         type : String,

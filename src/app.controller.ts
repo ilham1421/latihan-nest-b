@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Delete, Param, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Param, Put, UseInterceptors, UploadedFile, BadRequestException, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiBody } from '@nestjs/swagger';
 import { creatMahasiswaDTO } from './dto/create-mahasiswa.dto';
@@ -10,10 +10,25 @@ import { UserDecorator } from './user.decorator';
 import { User } from './entity/user.entity';
 import { UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express, Response } from 'express'; 
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
+
+  @Post('mahasiswa/:nim/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadMahasiswaFoto(@UploadedFile() file: Express.Multer.File, @Param('nim') nim: string) {
+    if (!file) throw new BadRequestException('File tidak boleh kosong');
+    return this.appService.uploadMahasiswaFoto(file, nim);
+  }
+
+  @Get('mahasiswa/:nim/foto')
+  async getMahasiswaFoto(@Param('nim') nim: string, @Res() res: Response) {
+    const filename = await this.appService.getMahasiwaFoto(nim);
+    return res.sendFile(filename, { root: 'uploads' });
+  }
 
   @Post('register')
   @ApiBody({
@@ -27,7 +42,7 @@ export class AppController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   auth(@UserDecorator() user : User) {
-    return user
+    return user;
   }
 
   @Post('login')
@@ -51,8 +66,8 @@ export class AppController {
 
   @Put('mahasiswa/:nim')
   @ApiBody({ type: updatemahasiswaDTO })
-  editMahasiswa(@Param('nim') nim: string) {
-    return this.appService.editMahasiswa(nim);
+  editMahasiswa(@Param('nim') nim: string, @Body() data: updatemahasiswaDTO) {
+  return this.appService.updateMahasiswa(nim, data);
   }
 
   @Get('mahasiswa')
