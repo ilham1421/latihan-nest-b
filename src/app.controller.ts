@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Delete, Param, Put, UseInterceptors, UploadedFile, BadRequestException, Res } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ApiBody } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { creatMahasiswaDTO } from './dto/create-mahasiswa.dto';
 import { updatemahasiswaDTO } from './dto/update-mahasiswa.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -18,7 +18,19 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Post('mahasiswa/:nim/upload')
-  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor(`file`))
   async uploadMahasiswaFoto(@UploadedFile() file: Express.Multer.File, @Param('nim') nim: string) {
     if (!file) throw new BadRequestException('File tidak boleh kosong');
     return this.appService.uploadMahasiswaFoto(file, nim);

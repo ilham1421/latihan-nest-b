@@ -6,14 +6,14 @@ export class creatMahasiswaDTO {
 
     @ApiProperty({description : "Foto Profile",
         type : String,
-        example : "http://localhost:3000/uploads/105841105422.jpg"})
+        example : "http://localhost:3000/uploads/105841105822.jpg"})
     @IsString() 
     @IsOptional()
     foto_profile? : string;
 
     @ApiProperty({description : "Nim", 
         type : String,
-        example : "105841105422"
+        example : "105841105822"
     })
     @IsString()
     @IsNotEmpty()
@@ -22,7 +22,7 @@ export class creatMahasiswaDTO {
 
     @ApiProperty({description : "Nama", 
         type : String,
-        example : "ALYA ANANDHA"
+        example : "Muh. Ilham Akbar"
     })
     @IsString()
     @IsNotEmpty()
@@ -50,7 +50,7 @@ export class creatMahasiswaDTO {
     @ApiProperty({
         description : "Jenis Kelamin", 
         enum : Jenis_Kelamin,
-        example : "P"
+        example : "L"
     })
     @IsEnum(Jenis_Kelamin)
     jenis_kelamin : Jenis_Kelamin;

@@ -6,7 +6,7 @@ import { hashSync, compareSync } from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
-import { extname } from 'path';
+import path, { extname, join } from 'path';
 import { updatemahasiswaDTO } from './dto/update-mahasiswa.dto';
 import { User } from './entity/user.entity';
 
@@ -19,13 +19,13 @@ export class AppService {
     if (!mahasiswa) throw new NotFoundException('Mahasiswa Tidak Ditemukan');
 
     if (mahasiswa.foto_profile) {
-      const filePath = `../../uploads/${mahasiswa.foto_profile}`;
+      const filePath = join(__dirname,`../uploads/${mahasiswa.foto_profile}`);
       if (existsSync(filePath)) {
         rmSync(filePath);
       }
     }
 
-    const uploadPath = `../../uploads/`;
+    const uploadPath = join(__dirname, `../uploads/`);
     if (!existsSync(uploadPath)) {
       mkdirSync(uploadPath);
     }

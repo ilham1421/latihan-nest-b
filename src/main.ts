@@ -21,7 +21,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('LATIHAN NEST JS KELAS - B')
-    .setDescription('Alya Anandha - 105841105422')
+    .setDescription('Muh. Ilham Akbar - 105841105822')
     .setVersion('0.1')
     .addTag('LATIHAN 1')
     .addBearerAuth()
