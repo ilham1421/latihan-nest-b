@@ -1,4 +1,10 @@
-import { BadRequestException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { creatMahasiswaDTO } from './dto/create-mahasiswa.dto';
 import prisma from './prisma';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -9,6 +15,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 import path, { extname, join } from 'path';
 import { updatemahasiswaDTO } from './dto/update-mahasiswa.dto';
 import { User } from './entity/user.entity';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class AppService {
@@ -19,7 +26,7 @@ export class AppService {
     if (!mahasiswa) throw new NotFoundException('Mahasiswa Tidak Ditemukan');
 
     if (mahasiswa.foto_profile) {
-      const filePath = join(__dirname,`../uploads/${mahasiswa.foto_profile}`);
+      const filePath = join(__dirname, `../uploads/${mahasiswa.foto_profile}`);
       if (existsSync(filePath)) {
         rmSync(filePath);
       }
@@ -32,7 +39,7 @@ export class AppService {
 
     const fileExt = extname(file.originalname);
     const baseFilename = mahasiswa.nim;
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const filename = `${baseFilename}-${uniqueSuffix}${fileExt}`;
     const filePath = `${uploadPath}${filename}`;
 
@@ -51,29 +58,6 @@ export class AppService {
     return mahasiswa.foto_profile;
   }
 
-  async register(data: RegisterUserDto) {
-    try {
-      const user = await prisma.user.findFirst({
-        where: {
-          username: data.username,
-        },
-      });
-      if (user != null) throw new BadRequestException('Username Sudah Ada');
-
-      const hash = hashSync(data.Password, 10);
-      const newUser = await prisma.user.create({
-        data: {
-          username: data.username,
-          password: hash,
-          role: "user", 
-        },
-      });
-      return newUser;
-    } catch (err) {
-      throw new InternalServerErrorException('Ada Masalah Pada Server');
-    }
-  }
-
   async auth(user_id: number) {
     try {
       const user = await prisma.user.findFirst({
@@ -85,7 +69,35 @@ export class AppService {
       return user;
     } catch (err) {
       if (err instanceof HttpException) throw err;
-      throw new InternalServerErrorException('Terdapat Masalah Dari Server Harap Coba Lagi dalam beberapa menit');
+      throw new InternalServerErrorException(
+        'Terdapat Masalah Dari Server Harap Coba Lagi dalam beberapa menit',
+      );
+    }
+  }
+  async register(data: RegisterUserDto): Promise<User> {
+    try {
+      const user = await prisma.user.findFirst({
+        where: {
+          username: data.username,
+        },
+      });
+      if (user != null) throw new BadRequestException('Username Sudah Ada');
+
+      const hash = hashSync(data.password, 10);
+      const newUser = await prisma.user.create({
+        data: {
+          username: data.username,
+          password: hash,
+          role: 'user',
+        },
+      });
+      return newUser;
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      if (err instanceof PrismaClientKnownRequestError) {
+        throw new BadRequestException('Data yang dimasukkan tidak valid');
+      }
+      throw new InternalServerErrorException('Ada Masalah Pada Server');
     }
   }
 
@@ -98,7 +110,7 @@ export class AppService {
       });
       if (user == null) throw new NotFoundException('Username Tidak Ditemukan');
 
-      const isPasswordValid = compareSync(data.Password, user.password);
+      const isPasswordValid = compareSync(data.password, user.password);
       if (!isPasswordValid) throw new BadRequestException('Password Salah');
 
       const payload = {
@@ -112,6 +124,7 @@ export class AppService {
         user,
       };
     } catch (err) {
+      if (err instanceof HttpException) throw err;
       throw new InternalServerErrorException('Ada Masalah Pada Server');
     }
   }
@@ -166,11 +179,11 @@ export class AppService {
         nim,
       },
     });
-  
+
     if (mahasiswa == null) {
       throw new NotFoundException('Tidak Menemukan NIM');
     }
-  
+
     await prisma.mahasiswa.update({
       where: {
         nim,
@@ -183,7 +196,21 @@ export class AppService {
         foto_profile: data.foto_profile,
       },
     });
-  
+
     return await prisma.mahasiswa.findMany();
+  }
+  async searchMahasiswa(nim?: string) {
+    try {
+      if (nim) {
+        const mahasiswa = await prisma.mahasiswa.findUnique({
+          where: { nim },
+        });
+        return mahasiswa ? [mahasiswa] : [];
+      }
+
+      return [];
+    } catch (error) {
+      throw new InternalServerErrorException('Ada masalah pada server');
+    }
   }
 }

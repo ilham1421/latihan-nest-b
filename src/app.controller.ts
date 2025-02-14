@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Delete, Param, Put, UseInterceptors, UploadedFile, BadRequestException, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Delete,
+  Param,
+  Put,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+  Res,
+  Query,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { creatMahasiswaDTO } from './dto/create-mahasiswa.dto';
@@ -11,14 +24,19 @@ import { User } from './entity/user.entity';
 import { UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Express, Response } from 'express'; 
+import { Express, Response } from 'express';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @Get('mahasiswa/search')
+  async searchMahasiswa(@Query('nim') nim?: string) {
+    return this.appService.searchMahasiswa(nim);
+  }
+
   @Post('mahasiswa/:nim/upload')
-  @ApiConsumes("multipart/form-data")
+  @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
@@ -31,7 +49,10 @@ export class AppController {
     },
   })
   @UseInterceptors(FileInterceptor(`file`))
-  async uploadMahasiswaFoto(@UploadedFile() file: Express.Multer.File, @Param('nim') nim: string) {
+  async uploadMahasiswaFoto(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('nim') nim: string,
+  ) {
     if (!file) throw new BadRequestException('File tidak boleh kosong');
     return this.appService.uploadMahasiswaFoto(file, nim);
   }
@@ -44,22 +65,22 @@ export class AppController {
 
   @Post('register')
   @ApiBody({
-    type: RegisterUserDto
+    type: RegisterUserDto,
   })
   register(@Body() data: RegisterUserDto) {
     return this.appService.register(data);
   }
 
-  @Get("/auth")
+  @Get('/auth')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  auth(@UserDecorator() user : User) {
+  auth(@UserDecorator() user: User) {
     return user;
   }
 
   @Post('login')
   @ApiBody({
-    type: LoginUserDto
+    type: LoginUserDto,
   })
   login(@Body() data: LoginUserDto) {
     return this.appService.login(data);
@@ -79,7 +100,7 @@ export class AppController {
   @Put('mahasiswa/:nim')
   @ApiBody({ type: updatemahasiswaDTO })
   editMahasiswa(@Param('nim') nim: string, @Body() data: updatemahasiswaDTO) {
-  return this.appService.updateMahasiswa(nim, data);
+    return this.appService.updateMahasiswa(nim, data);
   }
 
   @Get('mahasiswa')

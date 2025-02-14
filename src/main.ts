@@ -10,7 +10,7 @@ async function bootstrap() {
   app.use(cookieParser())
 
   app.enableCors({
-    origin: "",
+    origin: "*",
   });
 
   app.useGlobalPipes(
@@ -27,10 +27,10 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   
-    const documentFactory = () => SwaggerModule.createDocument(app, config);
+    const documenFactory = () => SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api-docs', app, documenFactory);
   
-    SwaggerModule.setup('api-docs', app, documentFactory);
+    await app.listen(3000, '0.0.0.0'); // Listen on all network interfaces
+  }
   
-    await app.listen(process.env.PORT ?? 3000);
-}
-bootstrap();
+  bootstrap();

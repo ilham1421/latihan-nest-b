@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth.module';
 import { ProfileModule } from './profile/profile.module';
+import { ChatModule } from './chat/chat.module';
+
 
 @Module({
   imports: [
@@ -13,7 +15,8 @@ import { ProfileModule } from './profile/profile.module';
 
     }),
     AuthModule,
-    ProfileModule
+    ProfileModule,
+    ChatModule
   ],
   controllers: [AppController],
   providers: [AppService],
